@@ -102,8 +102,8 @@ endfunction
 
 
 
-function! vcs#info(string, ...)  " {{{2
-  " string, action_format
+function! vcs#info(format, ...)  " {{{2
+  " format, action_format
 
   let types = vcs#detect()
   if empty(types)
@@ -113,7 +113,7 @@ function! vcs#info(string, ...)  " {{{2
 
   let type = vcs#types()[types[0]]
 
-  let format_string = a:string
+  let format_string = a:format
   if !empty(a:000)
     let action_message = s:get_action_message(type)
     if action_message != ''
