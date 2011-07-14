@@ -86,6 +86,9 @@ vcs#info({string}, [{action-string}])		*vcs#detect()*
 			%R : リポジトリのパス
 			%S : リポジトリからの相対パス
 			%a : アクション文字列
+>
+	let g:vimshell_right_prompt = 'vcs#info("(%s)-[%b]", "(%s)-[%b|%a]")'
+<
 
 ------------------------------------------------------------------------------
 グローバルオプション				*vcs-global-options*
