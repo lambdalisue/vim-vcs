@@ -13,6 +13,14 @@ let s:cmds = {}
 " Stored types.
 let s:types = {}
 
+" Cached status message.
+let s:cached_status = {}
+
+" Variables.
+if !exists('g:vcs#print_null')
+  let g:vcs#print_null_info = 1
+endif
+
 
 " --- Interface for user. {{{1
 
@@ -90,6 +98,75 @@ endfunction
 
 function! vcs#types()  " {{{2
   return copy(s:types)
+endfunction
+
+
+
+function! vcs#info(string, ...)  " {{{2
+  " string, action_format
+
+  let types = vcs#detect()
+  if empty(types)
+    " in no repository.
+    return g:vcs#print_null_info ? '' : '[novcs]-(noinfo)'
+  endif
+
+  let type = vcs#types()[types[0]]
+
+  let format_string = a:string
+  if !empty(a:000)
+    let action_message = s:get_action_message(type)
+    if action_message != ''
+      " Use action format.
+      let format_string = a:1
+    endif
+  endif
+
+  " Substitute format string.
+  let cnt = 0
+  let max = len(format_string)
+  let info = ''
+  while cnt < max
+    if format_string[cnt] == '%' && cnt+1 < max
+      let format = format_string[cnt + 1]
+      if format == '%'
+        " %%.
+        let info .= '%'
+      elseif format == 's'
+        " %s : VCS name.
+        let info .= type.name
+      elseif format == 'b'
+        " %b : current branch name.
+        let info .= has_key(type, 'current_branch') ?
+              \ type.current_branch() : ''
+      elseif format == 'r'
+        " %r : repository name.
+        let info .= has_key(type, 'repository_name') ?
+              \ type.repository_name() : ''
+      elseif format == 'R'
+        " %R : path to repository root.
+        let info .= type.root()
+      elseif format == 'S'
+        " %s : relative path to root.
+        let info .= has_key(type, 'relative_path') ?
+              \ type.relative_path(getcwd()) : ''
+      elseif format == 'a'
+        " %s : action message.
+        let info .= action_message
+      else
+        " Ignore.
+        let info .= '?'
+      endif
+
+      let cnt += 1
+    else
+      let info .= format_string[cnt]
+    endif
+
+    let cnt += 1
+  endwhile
+
+  return info
 endfunction
 
 
@@ -296,6 +373,32 @@ function! s:uniq(list)  "{{{2
     let d[i] = 0
   endfor
   return sort(keys(d))
+endfunction
+
+function! s:get_action_message(type) "{{{2
+  let repository = a:type.root()
+  if has_key(s:cached_status, repository)
+        \ && getftime(repository) ==
+        \      s:cached_status[repository].access_time
+    return s:cached_status[repository].action_message
+  endif
+
+  let actions = []
+  let status = a:type.unstaged_status()
+  for st in ['added', 'modified', 'deleted', 'conflicted', 'unktracked']
+    let files = filter(copy(status), 'v:val ==# st')
+    if !empty(files)
+      call add(actions, st . ':'.len(keys(files)))
+    endif
+  endfor
+
+  " Cached.
+  let action_message = join(actions)
+  let s:cached_status[repository] = {
+        \ 'access_time' : getftime(repository),
+        \ 'action_message' : action_message
+        \ }
+  return action_message
 endfunction
 
 function! s:echoerr(msg)  " {{{2

@@ -10,6 +10,7 @@ set cpo&vim
 
 let s:type = {
 \   'name': 'git',
+\   'cached_status': {},
 \ }
 
 
@@ -18,23 +19,22 @@ function! s:type.detect(file)
   return finddir('.git', fnamemodify(a:file, ':p:h') . ';') != ''
 endfunction
 
-function! s:type.root(file)
-  return fnamemodify(finddir('.git', fnamemodify(a:file, ':p:h') . ';'),
+function! s:type.root(...)
+  return fnamemodify(finddir('.git',
+        \ (a:0 > 1 ? fnamemodify(a:1, ':p:h') : '') . ';'),
   \                  ':p:h:h')
 endfunction
 
+function! s:type.repository_name()"{{{
+  return fnamemodify(self.root(), ':t')
+endfunction"}}}
 
+function! s:type.relative_path(file)"{{{
+  return fnamemodify(a:file, ':p') [len(s:type.root())+1 : -2]
+endfunction"}}}
 
-function! s:type.add(files)
-  return self.run('add', a:files)
-endfunction
-
-function! s:type.rm(files)
-  return self.run('rm', a:files)
-endfunction
-
-function! s:type.get_current_branch()"{{{
-  let root = self.root(getcwd())
+function! s:type.current_branch()"{{{
+  let root = self.root()
   if root == '' || !filereadable(root . '/.git/HEAD')
     return ''
   endif
@@ -46,6 +46,16 @@ function! s:type.get_current_branch()"{{{
     return matchstr(lines[0], 'refs/heads/\zs.\+$')
   endif
 endfunction"}}}
+
+
+
+function! s:type.add(files)
+  return self.run('add', a:files)
+endfunction
+
+function! s:type.rm(files)
+  return self.run('rm', a:files)
+endfunction
 
 function! s:type.cat(file, rev)
   " TODO: handle the error
@@ -106,7 +116,7 @@ let s:status_char = {
 \   'D': "deleted",
 \   'I': "ignored",
 \   'M': "modified",
-\   '?': "unknown",
+\   '?': "untracked",
 \ }
 function! s:type.status(...)
   let files = a:0 ? a:1 : []
