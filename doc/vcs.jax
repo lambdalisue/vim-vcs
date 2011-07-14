@@ -74,6 +74,18 @@ vcs#vcs({cmd} [, {arguments}] [, {options}])	*vcs#vcs()*
 
 vcs#detect([{file}])				*vcs#detect()*
 
+vcs#info({string}, [{action-string}])		*vcs#detect()*
+			VCSの情報をフォーマット形式で表示します。
+			{action-string}は、アクション文字列が存在するとき、
+			{string}の代わりに使用されます。
+			{string}には以下のフォーマット指定子を使用できます。
+			%% : %そのもの
+			%s : VCSの名前
+			%b : カレントブランチ名
+			%r : リポジトリ名
+			%R : リポジトリのパス
+			%S : リポジトリからの相対パス
+			%a : アクション文字列
 
 ------------------------------------------------------------------------------
 グローバルオプション				*vcs-global-options*
