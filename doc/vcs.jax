@@ -80,12 +80,13 @@ vcs#info({format}, [{action-format}])		*vcs#detect()*
 			{format}の代わりに使用されます。
 			{format}には以下のフォーマット指定子を使用できます。
 			%% : %そのもの
-			%s : VCSの名前
+			%a : アクション文字列
 			%b : カレントブランチ名
+			%p : リモートにプッシュされていなければ"?"
 			%r : リポジトリ名
 			%R : リポジトリのパス
+			%s : VCSの名前
 			%S : リポジトリからの相対パス
-			%a : アクション文字列
 >
 	let g:vimshell_right_prompt = 'vcs#info("(%s)-[%b]", "(%s)-[%b|%a]")'
 <
