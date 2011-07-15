@@ -113,10 +113,28 @@ function! vcs#info(format, ...)  " {{{2
 
   let type = vcs#types()[types[0]]
 
+  " Caching messages.
+  let repository = type.root()
+  if !has_key(s:cached_status, repository)
+        \ || getftime(repository) !=
+        \      s:cached_status[repository].access_time
+
+    let s:cached_status[repository] = {
+          \ 'access_time' : getftime(repository),
+          \ 'current_branch' : (has_key(type, 'current_branch') ?
+          \                      type.current_branch() : ''),
+          \ 'action_message' : s:get_action_message(type),
+          \ 'pushed_message' : (has_key(type, 'is_pushed') && type.is_pushed() ?
+          \                      '?' : ''),
+          \ 'repository_name' : (has_key(type, 'repository_name') ?
+          \                      type.repository_name() : ''),
+          \ 'repository_root' : type.root(),
+          \ }
+  endif
+
   let format_string = a:format
   if !empty(a:000)
-    let action_message = s:get_action_message(type)
-    if action_message != ''
+    if s:cached_status[repository].action_message != ''
       " Use action format.
       let format_string = a:1
     endif
@@ -132,27 +150,28 @@ function! vcs#info(format, ...)  " {{{2
       if format == '%'
         " %%.
         let info .= '%'
+      elseif format == 'a'
+        " %a : action message.
+        let info .= s:cached_status[repository].action_message
+      elseif format == 'b'
+        " %b : current branch name.
+        let info .= s:cached_status[repository].current_branch
+      elseif format == 'p'
+        " %p : is pushed message.
+        let info .= s:cached_status[repository].pushed_message
+      elseif format == 'r'
+        " %r : repository name.
+        let info .= s:cached_status[repository].repository_name
+      elseif format == 'R'
+        " %R : path to repository root.
+        let info .= s:cached_status[repository].repository_root
       elseif format == 's'
         " %s : VCS name.
         let info .= type.name
-      elseif format == 'b'
-        " %b : current branch name.
-        let info .= has_key(type, 'current_branch') ?
-              \ type.current_branch() : ''
-      elseif format == 'r'
-        " %r : repository name.
-        let info .= has_key(type, 'repository_name') ?
-              \ type.repository_name() : ''
-      elseif format == 'R'
-        " %R : path to repository root.
-        let info .= type.root()
       elseif format == 'S'
         " %s : relative path to root.
         let info .= has_key(type, 'relative_path') ?
               \ type.relative_path(getcwd()) : ''
-      elseif format == 'a'
-        " %s : action message.
-        let info .= action_message
       else
         " Ignore.
         let info .= '?'
@@ -376,13 +395,6 @@ function! s:uniq(list)  "{{{2
 endfunction
 
 function! s:get_action_message(type) "{{{2
-  let repository = a:type.root()
-  if has_key(s:cached_status, repository)
-        \ && getftime(repository) ==
-        \      s:cached_status[repository].access_time
-    return s:cached_status[repository].action_message
-  endif
-
   let actions = []
   let status = a:type.unstaged_status()
   for st in ['added', 'modified', 'deleted', 'conflicted', 'unktracked']
@@ -392,13 +404,7 @@ function! s:get_action_message(type) "{{{2
     endif
   endfor
 
-  " Cached.
-  let action_message = join(actions)
-  let s:cached_status[repository] = {
-        \ 'access_time' : getftime(repository),
-        \ 'action_message' : action_message
-        \ }
-  return action_message
+  return join(actions)
 endfunction
 
 function! s:echoerr(msg)  " {{{2

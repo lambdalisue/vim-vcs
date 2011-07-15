@@ -47,6 +47,21 @@ function! s:type.current_branch()"{{{
   endif
 endfunction"}}}
 
+function! s:type.is_pushed()"{{{
+  let root = self.root()
+  if root == ''
+    return 0
+  endif
+
+  let head = self.run('rev-parse', 'HEAD')
+  for remote in split(self.run('rev-parse', '--remotes'), "\n")
+    if head ==# remote
+      return 0
+    endif
+  endfor
+
+  return 1
+endfunction"}}}
 
 
 function! s:type.add(files)
