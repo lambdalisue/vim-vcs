@@ -39,28 +39,28 @@ endfunction
 
 " Misc.
 function! s:add_cursor_file()
-  for st in ['modified', 'deleted', 'conflicted', 'untracked', 'renamed']
-    let cfile = matchstr(getline('.'), '#\t' . st . ':\s\+\zs.*$')
-    if cfile != ''
-      if st ==# 'deleted'
-        call b:vcs_status.type.rm([cfile])
-      else
-        call b:vcs_status.type.add([cfile])
-      endif
+  let cfile = expand('<cfile>')
+  if cfile ==# '#' || cfile == '' || cfile =~ ':$'
+    return
+  endif
 
-      call s:refresh_buffer()
-    endif
-  endfor
+  let status = getline('^#\t\zs\h\w*\ze:')
+  if status ==# 'deleted'
+    call b:vcs_status.type.rm([cfile])
+  else
+    call b:vcs_status.type.add([cfile])
+  endif
+
+  call s:refresh_buffer()
 endfunction
 function! s:remove_cursor_file()
-  for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
-    let cfile = matchstr(getline('.'), '#\t' . st . ':\s\+\zs.*$')
-    if cfile != ''
-      call b:vcs_status.type.reset([cfile])
+  let cfile = expand('<cfile>')
+  if cfile ==# '#' || cfile == '' || cfile =~ ':$'
+    return
+  endif
 
-      call s:refresh_buffer()
-    endif
-  endfor
+  call b:vcs_status.type.reset([cfile])
+  call s:refresh_buffer()
 endfunction
 function! s:refresh_buffer()
   let pos = getpos('.')
@@ -81,7 +81,7 @@ function! s:refresh_buffer()
   for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
     let files = filter(copy(status), 'v:val ==# st')
     if !empty(files)
-      let staged_lines += map(keys(files), '"#\<TAB>" . st . ":  " . v:val')
+      let staged_lines += map(keys(files), '"#\<TAB>" . st . ":\<TAB>" . v:val')
     endif
   endfor
   if !empty(staged_lines)
@@ -98,7 +98,7 @@ function! s:refresh_buffer()
     for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
       let files = filter(copy(status), 'v:val ==# st')
       if !empty(files)
-        let unstaged_lines += map(keys(files), '"#\<TAB>" . st . ":  " . v:val')
+        let unstaged_lines += map(keys(files), '"#\<TAB>" . st . ":\<TAB>" . v:val')
       endif
     endfor
     if !empty(unstaged_lines)
