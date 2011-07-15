@@ -39,7 +39,7 @@ endfunction
 
 " Misc.
 function! s:add_cursor_file()
-  for st in ['modified', 'deleted', 'conflicted', 'untracked']
+  for st in ['modified', 'deleted', 'conflicted', 'untracked', 'renamed']
     let cfile = matchstr(getline('.'), '#\t' . st . ':\s\+\zs.*$')
     if cfile != ''
       if st ==# 'deleted'
@@ -53,7 +53,7 @@ function! s:add_cursor_file()
   endfor
 endfunction
 function! s:remove_cursor_file()
-  for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked']
+  for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
     let cfile = matchstr(getline('.'), '#\t' . st . ':\s\+\zs.*$')
     if cfile != ''
       call b:vcs_status.type.reset([cfile])
@@ -78,7 +78,7 @@ function! s:refresh_buffer()
   " print staged status.
   let status = b:vcs_status.type.status(b:vcs_status.files)
   let staged_lines = []
-  for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked']
+  for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
     let files = filter(copy(status), 'v:val ==# st')
     if !empty(files)
       let staged_lines += map(keys(files), '"#\<TAB>" . st . ":  " . v:val')
@@ -95,7 +95,7 @@ function! s:refresh_buffer()
   if has_key(b:vcs_status.type, 'unstaged_status')
     let status = b:vcs_status.type.unstaged_status(b:vcs_status.files)
     let unstaged_lines = []
-    for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked']
+    for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
       let files = filter(copy(status), 'v:val ==# st')
       if !empty(files)
         let unstaged_lines += map(keys(files), '"#\<TAB>" . st . ":  " . v:val')

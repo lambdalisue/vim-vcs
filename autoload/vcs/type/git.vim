@@ -116,6 +116,7 @@ let s:status_char = {
 \   'D': "deleted",
 \   'I': "ignored",
 \   'M': "modified",
+\   'R': "renamed",
 \   '?': "untracked",
 \ }
 function! s:type.status(...)

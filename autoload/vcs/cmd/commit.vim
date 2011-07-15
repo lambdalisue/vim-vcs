@@ -42,7 +42,8 @@ function! s:cmd.execute(type, ...)
   if has_key(a:type, 'status')
     let status = a:type.status(self.files)
     let lines = []
-    for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked']
+    for st in
+          \ ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
       let files = filter(copy(status), 'v:val ==# st')
       if !empty(files)
         call add(lines, st)
