@@ -54,6 +54,11 @@ function! s:type.is_pushed()"{{{
   endif
 
   let head = self.run('rev-parse', 'HEAD')
+  " Chomp.
+  if head =~ '\n'
+    let head = head[: -2]
+  endif
+
   for remote in split(self.run('rev-parse', '--remotes'), "\n")
     if head ==# remote
       return 0
