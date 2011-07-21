@@ -74,7 +74,7 @@ vcs#vcs({cmd} [, {arguments}] [, {options}])	*vcs#vcs()*
 
 vcs#detect([{file}])				*vcs#detect()*
 
-vcs#info({format}, [{action-format}])		*vcs#detect()*
+vcs#info({format}, [{action-format}])		*vcs#info()*
 			VCSの情報をフォーマット形式で表示します。
 			{action-format}は、アクション文字列が存在するとき、
 			{format}の代わりに使用されます。
