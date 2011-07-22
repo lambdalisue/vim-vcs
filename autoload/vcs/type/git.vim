@@ -55,11 +55,11 @@ function! s:type.is_pushed()"{{{
 
   let head = self.run('rev-parse', 'HEAD')
   " Chomp.
-  if head =~ '\n'
-    let head = head[: -2]
+  if head =~ '\r\?\n'
+    let head = matchstr(head, '^.*\ze\r\?\n')
   endif
 
-  for remote in split(self.run('rev-parse', '--remotes'), "\n")
+  for remote in split(self.run('rev-parse', '--remotes'), '\r\?\n')
     if head ==# remote
       return 0
     endif
