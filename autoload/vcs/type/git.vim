@@ -25,6 +25,12 @@ function! s:type.root(...)
   \                  ':p:h:h')
 endfunction
 
+function! s:type.repository(...)
+  return fnamemodify(finddir('.git',
+        \ (a:0 > 1 ? fnamemodify(a:1, ':p:h') : '') . ';'),
+  \                  ':p:h')
+endfunction
+
 function! s:type.repository_name()"{{{
   return fnamemodify(self.root(), ':t')
 endfunction"}}}
