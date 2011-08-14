@@ -29,6 +29,12 @@ function! s:type.repository_name()"{{{
   return fnamemodify(self.root(), ':t')
 endfunction"}}}
 
+function! s:type.repository_config_file(...)"{{{
+  return fnamemodify(finddir('.git',
+        \ (a:0 > 1 ? fnamemodify(a:1, ':p:h') : '') . ';'),
+  \                  ':p:h')
+endfunction"}}}
+
 function! s:type.relative_path(file)"{{{
   return fnamemodify(a:file, ':p') [len(s:type.root())+1 : -2]
 endfunction"}}}
