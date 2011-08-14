@@ -114,7 +114,7 @@ function! vcs#info(format, ...)  " {{{2
   let type = vcs#types()[types[0]]
 
   " Caching messages.
-  let repository = type.repository_config_file()
+  let repository = type.repository()
   if !has_key(s:cached_status, repository)
         \ || getftime(repository) !=
         \      s:cached_status[repository].access_time

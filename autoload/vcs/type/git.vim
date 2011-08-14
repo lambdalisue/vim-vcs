@@ -25,14 +25,14 @@ function! s:type.root(...)
   \                  ':p:h:h')
 endfunction
 
-function! s:type.repository_name()"{{{
-  return fnamemodify(self.root(), ':t')
-endfunction"}}}
-
-function! s:type.repository_config_file(...)"{{{
+function! s:type.repository(...)
   return fnamemodify(finddir('.git',
         \ (a:0 > 1 ? fnamemodify(a:1, ':p:h') : '') . ';'),
   \                  ':p:h')
+endfunction
+
+function! s:type.repository_name()"{{{
+  return fnamemodify(self.root(), ':t')
 endfunction"}}}
 
 function! s:type.relative_path(file)"{{{
@@ -61,11 +61,11 @@ function! s:type.is_pushed()"{{{
 
   let head = self.run('rev-parse', 'HEAD')
   " Chomp.
-  if head =~ '\n'
-    let head = head[: -2]
+  if head =~ '\r\?\n'
+    let head = matchstr(head, '^.*\ze\r\?\n')
   endif
 
-  for remote in split(self.run('rev-parse', '--remotes'), "\n")
+  for remote in split(self.run('rev-parse', '--remotes'), '\r\?\n')
     if head ==# remote
       return 0
     endif
