@@ -65,7 +65,8 @@ function! s:type.is_synced()"{{{
     let head = matchstr(head, '^.*\ze\r\?\n')
   endif
 
-  for remote in split(self.run('rev-parse', '--remotes'), '\r\?\n')
+  for remote in split(self.run('rev-parse',
+        \ '--remotes', '--branches'), '\r\?\n')
     if head ==# remote
       return 0
     endif
