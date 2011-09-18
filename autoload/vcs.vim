@@ -124,7 +124,7 @@ function! vcs#info(format, ...)  " {{{2
           \ 'current_branch' : (has_key(type, 'current_branch') ?
           \                      type.current_branch() : ''),
           \ 'action_message' : s:get_action_message(type),
-          \ 'pushed_message' : (has_key(type, 'is_pushed') && type.is_pushed() ?
+          \ 'pushed_message' : (has_key(type, 'is_synced') && type.is_synced() ?
           \                      '?' : ''),
           \ 'repository_name' : (has_key(type, 'repository_name') ?
           \                      type.repository_name() : ''),

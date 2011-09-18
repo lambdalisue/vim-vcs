@@ -53,7 +53,7 @@ function! s:type.current_branch()"{{{
   endif
 endfunction"}}}
 
-function! s:type.is_pushed()"{{{
+function! s:type.is_synced()"{{{
   let root = self.root()
   if root == ''
     return 0
