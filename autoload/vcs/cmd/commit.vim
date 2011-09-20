@@ -24,9 +24,28 @@ function! s:cmd.depends()
 endfunction
 
 function! s:cmd.execute(type, ...)
-  " FIXME: abort if no files to commit.
   let self.type = a:type
   let self.files = copy(a:000)
+
+  if has_key(a:type, 'status')
+    let status = a:type.status(self.files)
+    let lines = []
+    for st in
+          \ ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
+      let files = filter(copy(status), 'v:val ==# st')
+      if !empty(files)
+        call add(lines, st)
+        let lines += map(sort(keys(files)), '"  " . v:val')
+      endif
+    endfor
+
+    if empty(lines)
+      " abort if no files to commit.
+      echo 'vcs:commit: no files to commit.'
+      return
+    endif
+  endif
+
   call s:openbuf.open('[vcs:commit]')
   let b:vcs_commit = self
   setlocal buftype=acwrite nobuflisted noswapfile
@@ -40,16 +59,6 @@ function! s:cmd.execute(type, ...)
   1 put =s:border
 
   if has_key(a:type, 'status')
-    let status = a:type.status(self.files)
-    let lines = []
-    for st in
-          \ ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
-      let files = filter(copy(status), 'v:val ==# st')
-      if !empty(files)
-        call add(lines, st)
-        let lines += map(sort(keys(files)), '"  " . v:val')
-      endif
-    endfor
     silent $ put =[]
     silent $ put =lines
   endif
@@ -72,7 +81,7 @@ function! s:cmd.do_commit()
   \               '^\s*\zs.\{-}\ze\s*$', '\0', ''), "\n")
   if empty(mes) || &modified
     " FIXME:
-    echomsg 'vcs:commit: aborted.'
+    echo 'vcs:commit: aborted.'
     return
   endif
   let file = tempname()
