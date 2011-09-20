@@ -70,7 +70,7 @@ function! s:cmd.do_commit()
   let mes = split(substitute(matchstr(join(getline(1, '$'), "\n"),
   \               '^.\{-}\ze\%(\V' . escape(s:border, '\') . '\m.*\)\?$'),
   \               '^\s*\zs.\{-}\ze\s*$', '\0', ''), "\n")
-  if empty(mes)
+  if empty(mes) || &modified
     " FIXME:
     echomsg 'vcs:commit: aborted.'
     return
