@@ -396,7 +396,8 @@ endfunction
 
 function! s:get_action_message(type) "{{{2
   let actions = []
-  let status = a:type.unstaged_status()
+  let status = has_key(a:type, 'unstaged_status')?
+        \ a:type.unstaged_status() : a:type.status()
   for st in ['added', 'modified', 'deleted', 'conflicted', 'unktracked']
     let files = filter(copy(status), 'v:val ==# st')
     if !empty(files)
