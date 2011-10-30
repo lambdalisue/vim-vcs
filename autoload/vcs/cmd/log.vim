@@ -20,7 +20,7 @@ function! s:cmd.depends()
   return ['log']
 endfunction
 
-function! s:cmd.execute(type)
+function! s:cmd.execute(type, ...)
   let log = call(a:type.log, a:000, a:type)
   call s:openbuf.open('[vcs:log]')
   setlocal noreadonly
