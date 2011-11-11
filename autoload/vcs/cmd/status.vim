@@ -44,7 +44,7 @@ function! s:add_cursor_file()
     return
   endif
 
-  let status = getline('^#\t\zs\h\w*\ze:')
+  let status = matchstr(getline('.'), '^#\t\zs\h\w*\ze:')
   if status ==# 'deleted'
     call b:vcs_status.type.rm([cfile])
   else
