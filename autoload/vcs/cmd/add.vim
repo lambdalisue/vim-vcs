@@ -18,7 +18,7 @@ endfunction
 
 function! s:cmd.execute(type, ...)
   return a:type.add(a:0 ? map(copy(a:000), 'fnamemodify(v:val, ":p")')
-  \                        : expand('%:p'))
+  \                        : vcs#expand('%:p'))
 endfunction
 
 function! s:cmd.complete(args)

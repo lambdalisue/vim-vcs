@@ -20,7 +20,7 @@ endfunction
 
 
 function! s:cmd.execute(type, ...)
-  let file = a:0 ? fnamemodify(a:1, ':p') : expand('%:p')
+  let file = a:0 ? fnamemodify(a:1, ':p') : vcs#expand('%:p')
   " TODO: cache
   return a:type.root(file)
 endfunction

@@ -64,7 +64,7 @@ function! vcs#vcs(cmd, ...)  " {{{2
 endfunction
 
 function! vcs#detect(...)  " {{{2
-  let file = fnamemodify(a:0 ? a:1 : expand('%'), ':p')
+  let file = fnamemodify(a:0 ? a:1 : vcs#expand('%'), ':p')
   let bufnr = bufnr(file)
   if 0 <= bufnr && type(getbufvar(bufnr, 'vcs_type')) == type([])
     return getbufvar(bufnr, 'vcs_type')
@@ -377,6 +377,12 @@ function! vcs#flatten(list)  " {{{2
     unlet! i
   endfor
   return list
+endfunction
+
+
+
+function! vcs#expand(path)  " {{{2
+  return expand(escape(a:path, '*?[]"={}'))
 endfunction
 
 

@@ -132,7 +132,7 @@ function! s:type.run(...)
 endfunction
 
 function! s:type.runf(file, ...)
-  let root = self.root(a:file != '' ? a:file : expand('%:p:h'))
+  let root = self.root(a:file != '' ? a:file : vcs#expand('%:p:h'))
   return self.run(a:000)
 endfunction
 

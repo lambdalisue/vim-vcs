@@ -39,7 +39,7 @@ endfunction
 
 " Misc.
 function! s:add_cursor_file()
-  let cfile = expand('<cfile>')
+  let cfile = vcs#expand('<cfile>')
   if cfile ==# '#' || cfile == '' || cfile =~ ':$'
     return
   endif
@@ -54,7 +54,7 @@ function! s:add_cursor_file()
   call s:refresh_buffer()
 endfunction
 function! s:remove_cursor_file()
-  let cfile = expand('<cfile>')
+  let cfile = vcs#expand('<cfile>')
   if cfile ==# '#' || cfile == '' || cfile =~ ':$'
     return
   endif
