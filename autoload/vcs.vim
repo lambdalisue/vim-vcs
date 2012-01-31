@@ -221,7 +221,7 @@ function! vcs#complete(lead, cmd, pos)  " {{{2
 
   let list = []
   if has_key(params, 'cmd')
-    if has_key(s:cmds, params.cmd)
+    if has_key(s:cmds, params.cmd) && has_key(s:cmds[params.cmd], 'complete')
       let list = s:cmds[params.cmd].complete(params.args + [lead])
     endif
 
