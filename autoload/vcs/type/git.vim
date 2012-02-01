@@ -27,7 +27,7 @@ endfunction
 
 function! s:type.repository(...)
   return fnamemodify(finddir('.git',
-        \ (a:0 > 1 ? escape(fnamemodify(a:1, ':p:h'), ' '), : '') . ';'),
+        \ (a:0 > 1 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
   \                  ':p:h')
 endfunction
 
