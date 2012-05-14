@@ -16,7 +16,8 @@ let s:type = {
 
 
 function! s:type.detect(file)
-  return finddir('.git', escape(fnamemodify(a:file, ':p:h'), ' ') . ';') != ''
+  return executable('git') &&
+        \ finddir('.git', escape(fnamemodify(a:file, ':p:h'), ' ') . ';') != ''
 endfunction
 
 function! s:type.root(...)
