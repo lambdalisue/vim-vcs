@@ -1,4 +1,4 @@
-" vcs:type: mercurial
+" vcs:type: hg
 " Version: 0.1.0
 " Author : choplin <choplin.public+vim@gmail.com>
 " License: Creative Commons Attribution 2.1 Japan License
@@ -9,7 +9,7 @@ set cpo&vim
 
 
 let s:type = {
-\   'name': 'mercurial',
+\   'name': 'hg',
 \   'cached_status': {},
 \ }
 
