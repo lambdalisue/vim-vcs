@@ -152,7 +152,7 @@ function! s:type.status(...)
   let files = a:0 ? a:1 : []
   let status = {}
   let base = empty(files) ? '' : files[0]
-  let res = self.runf(base, 'status', '-A', files)
+  let res = self.runf(base, 'status', (empty(files) ? '' : '-A'), files)
 
   for i in split(res, "\n")
     let [code, file] = [i[0], i[2:]]

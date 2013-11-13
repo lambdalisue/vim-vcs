@@ -171,11 +171,14 @@ function! s:get_status(self, files, is_unstaged)
     let status[file] = a:is_unstaged ? y : x
   endfor
 
-  let ignored = a:self.runf(base, 'ls-files',
-        \                      '--exclude-standard', '-o', '-i', '--', a:files)
-  for i in split(ignored, "\n")
-    let status[i] = 'I'
-  endfor
+  if !empty(a:files)
+    let ignored = a:self.runf(base, 'ls-files',
+          \                      '--exclude-standard', '-o', '-i', '--', a:files)
+    for i in split(ignored, "\n")
+      let status[i] = 'I'
+    endfor
+  endif
+
   return map(status, 'get(s:status_char, v:val, " ")')
 endfunction
 
