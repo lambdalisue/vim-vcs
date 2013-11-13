@@ -45,11 +45,11 @@ function! vcs#vcs(cmd, ...)  " {{{2
   endfor
 
   let cmd = copy(s:cmds[a:cmd])
-  let type = vcs#detect()
-  if empty(type)
+  let name = vcs#detect()
+  if name ==# ''
     throw 'vcs: This buffer is not in any repository.'
   endif
-  call insert(args, copy(s:types[type[0]]))
+  call insert(args, copy(s:types[name]))
 
   let res = call(cmd.execute, args, cmd)
 
@@ -67,11 +67,16 @@ function! vcs#detect(...)  " {{{2
   let file = fnamemodify(a:0 ? a:1 : vcs#expand('%'), ':p')
   let bufnr = bufnr(file)
   if 0 <= bufnr && type(getbufvar(bufnr, 'vcs_type')) == type([])
-    return getbufvar(bufnr, 'vcs_type')
+    return getbufvar(bufnr, 'vcs_type')[0]
   endif
-  let list = map(filter(values(s:types), 'v:val.detect(file)'), 'v:val.name')
-  call setbufvar(bufnr, 'vcs_type', list)
-  return list
+  let dict = {}
+  for type in values(s:types)
+    let dict[len(type.root(file))] = type.name
+  endfor
+  let dict[0] = ''
+  let name = dict[max(keys(dict))]
+  call setbufvar(bufnr, 'vcs_type', [name])
+  return name
 endfunction
 
 function! vcs#register_cmd(cmd, ...)  " {{{2
@@ -105,13 +110,13 @@ endfunction
 function! vcs#info(format, ...)  " {{{2
   " format, action_format
 
-  let types = vcs#detect()
-  if empty(types)
+  let name = vcs#detect()
+  if name ==# ''
     " in no repository.
     return g:vcs#print_null_info ? '' : '[novcs]-(noinfo)'
   endif
 
-  let type = vcs#types()[types[0]]
+  let type = vcs#types()[name]
 
   " Caching messages.
   let repository = type.repository()
