@@ -43,12 +43,12 @@ endfunction"}}}
 function! s:type.current_branch()"{{{
   let root = self.root()
   if root == '' || !filereadable(root . '/.hg/branch')
-    return ''
+    return 'default'
   endif
 
   let lines = readfile(root . '/.hg/branch')
   if empty(l:lines)
-    return ''
+    return 'default'
   else
     return lines[0]
   endif
@@ -142,10 +142,10 @@ endfunction
 let s:mercurial_status_char = {
 \   'M': "modified",
 \   'A': "added",
-\   'R': "removed",
+\   'R': "deleted",
 \   'C': "clean",
-\   '!': "missing (deleted by non-hg command, but still tracked)",
-\   '?': "not tracked",
+\   '!': "missing",
+\   '?': "untracked",
 \   'I': "ignored",
 \ }
 function! s:type.status(...)
