@@ -92,9 +92,9 @@ function! s:refresh_buffer()
   endif
 
   " print unstaged status.
+  let unstaged_lines = []
   if has_key(b:vcs_status.type, 'unstaged_status')
     let status = b:vcs_status.type.unstaged_status(b:vcs_status.files)
-    let unstaged_lines = []
     for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
       let files = filter(copy(status), 'v:val ==# st')
       if !empty(files)
