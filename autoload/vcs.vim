@@ -17,9 +17,8 @@ let s:types = {}
 let s:cached_status = {}
 
 " Variables.
-if !exists('g:vcs#print_null')
-  let g:vcs#print_null_info = 1
-endif
+let g:vcs#print_null_info = !get(g:, 'vcs#print_null', 0) ?
+      \ '' : get(g:, 'vcs#print_null_info', '(novcs)-[noinfo]')
 
 
 " --- Interface for user. {{{1
@@ -113,7 +112,7 @@ function! vcs#info(format, ...)  " {{{2
   let name = vcs#detect()
   if name ==# ''
     " in no repository.
-    return g:vcs#print_null_info ? '' : '[novcs]-(noinfo)'
+    return g:vcs#print_null_info
   endif
 
   let type = vcs#types()[name]

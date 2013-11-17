@@ -26,13 +26,13 @@ endfunction
 
 function! s:type.root(...)
   return s:abspath(finddir('.hg',
-        \ (a:0 > 1 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
+        \ (a:0 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
   \                  ':p:h:h')
 endfunction
 
 function! s:type.repository(...)
   return s:abspath(finddir('.hg',
-        \ (a:0 > 1 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
+        \ (a:0 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
   \                  ':p:h')
 endfunction
 
