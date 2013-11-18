@@ -19,46 +19,64 @@ function! s:abspath(base, mods)
   return a:base !=# '' ? fnamemodify(a:base, a:mods) : ''
 endfunction
 
+function! s:find_git(path)
+  let dir = s:abspath(finddir('.git', a:path . ';'), ':p:h')
+  let file = s:abspath(findfile('.git', a:path . ';'), ':p')
+  return len(dir) >= len(file) ? dir : file
+endfunction
+
 function! s:type.detect(file)
   return executable('git') &&
-        \ finddir('.git', escape(fnamemodify(a:file, ':p:h'), ' ') . ';') != ''
+        \ s:find_git(escape(fnamemodify(a:file, ':p:h'), ' ')) !=# ''
 endfunction
 
 function! s:type.root(...)
-  return s:abspath(finddir('.git',
-        \ (a:0 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
-  \                  ':p:h:h')
+  return s:abspath(s:find_git(
+        \ a:0 ? escape(fnamemodify(a:1, ':p:h'), ' ') : ''), ':h')
 endfunction
+
+let s:is_windows = has('win16') || has('win32') || has('win64')
 
 function! s:type.repository(...)
-  return s:abspath(finddir('.git',
-        \ (a:0 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '') . ';'),
-  \                  ':p:h')
+  let dotgit = s:find_git(a:0 ? escape(fnamemodify(a:1, ':p:h'), ' ') : '')
+  if isdirectory(dotgit)
+    return dotgit
+  elseif filereadable(dotgit)
+    let lines = readfile(dotgit)
+    if !empty(lines)
+      let gitdir = matchstr(lines[0], '^gitdir:\s*\zs.\+$')
+      let is_abs = gitdir =~? (s:is_windows ? '^[a-z]:[/\\]' : '^/')
+      return s:abspath((is_abs ? gitdir : dotgit[: -5] . gitdir), ':p:h')
+    endif
+  endif
+  return ''
 endfunction
 
-function! s:type.repository_name()"{{{
+function! s:type.repository_name() "{{{
   return fnamemodify(self.root(), ':t')
 endfunction"}}}
 
-function! s:type.relative_path(file)"{{{
+function! s:type.relative_path(file) "{{{
   return fnamemodify(a:file, ':p')[len(self.root())+1 : -2]
 endfunction"}}}
 
-function! s:type.current_branch()"{{{
-  let root = self.root()
-  if root == '' || !filereadable(root . '/.git/HEAD')
+function! s:type.current_branch() "{{{
+  let gitdir = self.repository()
+  if gitdir == '' || !filereadable(gitdir . '/HEAD')
     return ''
   endif
 
-  let lines = readfile(root . '/.git/HEAD')
+  let lines = readfile(gitdir . '/HEAD')
   if empty(l:lines)
     return ''
-  else
+  elseif lines[0] =~? 'refs/heads/'
     return matchstr(lines[0], 'refs/heads/\zs.\+$')
+  else
+    return lines[0][: 6]
   endif
 endfunction"}}}
 
-function! s:type.is_synced()"{{{
+function! s:type.is_synced() "{{{
   let root = self.root()
   if root == ''
     return 0
