@@ -8,6 +8,10 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 
+let s:openbuf = openbuf#new('vcs/cmd/add', {
+\ })
+
+
 let s:cmd = {
 \   'name': 'add',
 \ }
@@ -17,8 +21,14 @@ function! s:cmd.depends()
 endfunction
 
 function! s:cmd.execute(type, ...)
-  return a:type.add(a:0 ? map(copy(a:000), 'fnamemodify(v:val, ":p")')
-  \                        : vcs#expand('%:p'))
+  let files = a:0 ? map(copy(a:000), 'fnamemodify(v:val, ":p")')
+  \              : vcs#expand('%:p')
+  call s:openbuf.open('[vcs:add]')
+  setlocal buftype=nofile nobuflisted noswapfile
+  execute 'lcd' a:type.workdir
+  let out = a:type.add(files)
+  call s:openbuf.do('silent bdelete!')
+  return out
 endfunction
 
 function! s:cmd.complete(args)

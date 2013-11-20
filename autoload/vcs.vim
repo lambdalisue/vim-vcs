@@ -48,7 +48,9 @@ function! vcs#vcs(cmd, ...)  " {{{2
   if name ==# ''
     throw 'vcs: This buffer is not in any repository.'
   endif
-  call insert(args, copy(s:types[name]))
+  let type = copy(s:types[name])
+  let type.workdir = root
+  call insert(args, type)
 
   let res = call(cmd.execute, args, cmd)
 

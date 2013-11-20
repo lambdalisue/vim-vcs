@@ -15,16 +15,18 @@ let s:cmd = {
 \ }
 
 function! s:cmd.depends()
-  return ['status', 'root']
+  return ['status', 'add', 'rm', 'reset']
 endfunction
 
 function! s:cmd.execute(type, ...)
   let self.type = a:type
   let self.files = copy(a:000)
-  call s:openbuf.open('[vcs:status]')
-  let b:vcs_status = self
 
+  call s:openbuf.open('[vcs:status]')
   setlocal buftype=nofile nobuflisted noswapfile
+  execute 'lcd' a:type.workdir
+
+  let b:vcs_status = self
 
   nnoremap <silent><buffer> <Enter> :<C-u>call <SID>add_cursor_file()<CR>
   nnoremap <silent><buffer> -       :<C-u>call <SID>remove_cursor_file()<CR>

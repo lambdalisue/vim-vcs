@@ -8,8 +8,9 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 
-let s:cmd = {}
-let s:cmd.name = 'root'
+let s:cmd = {
+\   'name': 'root',
+\ }
 
 
 
