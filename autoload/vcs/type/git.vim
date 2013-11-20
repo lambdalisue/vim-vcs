@@ -61,12 +61,12 @@ function! s:type.relative_path(file) "{{{
 endfunction"}}}
 
 function! s:type.current_branch() "{{{
-  let gitdir = self.repository()
-  if gitdir == '' || !filereadable(gitdir . '/HEAD')
+  let repo = self.repository()
+  if repo == '' || !filereadable(repo . '/HEAD')
     return ''
   endif
 
-  let lines = readfile(gitdir . '/HEAD')
+  let lines = readfile(repo . '/HEAD')
   if empty(l:lines)
     return ''
   elseif lines[0] =~? 'refs/heads/'

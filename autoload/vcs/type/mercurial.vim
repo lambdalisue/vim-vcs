@@ -36,21 +36,21 @@ function! s:type.repository(...)
   \                  ':p:h')
 endfunction
 
-function! s:type.repository_name()"{{{
+function! s:type.repository_name() "{{{
   return fnamemodify(self.root(), ':t')
 endfunction"}}}
 
-function! s:type.relative_path(file)"{{{
+function! s:type.relative_path(file) "{{{
   return fnamemodify(a:file, ':p')[len(self.root())+1 : -1]
 endfunction"}}}
 
-function! s:type.current_branch()"{{{
-  let root = self.root()
-  if root == '' || !filereadable(root . '/.hg/branch')
+function! s:type.current_branch() "{{{
+  let repo = self.repository()
+  if repo == '' || !filereadable(repo . '/branch')
     return 'default'
   endif
 
-  let lines = readfile(root . '/.hg/branch')
+  let lines = readfile(repo . '/branch')
   if empty(l:lines)
     return 'default'
   else
@@ -58,7 +58,7 @@ function! s:type.current_branch()"{{{
   endif
 endfunction"}}}
 
-function! s:type.is_synced()"{{{
+function! s:type.is_synced() "{{{
   let root = self.root()
   if root == ''
     return 0
