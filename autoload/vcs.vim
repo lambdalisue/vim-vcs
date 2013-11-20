@@ -44,7 +44,7 @@ function! vcs#vcs(cmd, ...)  " {{{2
   endfor
 
   let cmd = copy(s:cmds[a:cmd])
-  let name = vcs#detect()
+  let [name, root] = vcs#detect()
   if name ==# ''
     throw 'vcs: This buffer is not in any repository.'
   endif
@@ -66,16 +66,17 @@ function! vcs#detect(...)  " {{{2
   let file = fnamemodify(a:0 ? a:1 : vcs#expand('%'), ':p')
   let bufnr = bufnr(file)
   if 0 <= bufnr && type(getbufvar(bufnr, 'vcs_type')) == type([])
-    return getbufvar(bufnr, 'vcs_type')[0]
+    return getbufvar(bufnr, 'vcs_type')
   endif
   let dict = {}
   for type in values(s:types)
-    let dict[len(type.root(file))] = type.name
+    let root = type.root(file)
+    let dict[len(root)] = [type.name, root]
   endfor
-  let dict[0] = ''
-  let name = dict[max(keys(dict))]
-  call setbufvar(bufnr, 'vcs_type', [name])
-  return name
+  let dict[0] = ['', '']
+  let info = dict[max(keys(dict))]
+  call setbufvar(bufnr, 'vcs_type', info)
+  return info
 endfunction
 
 function! vcs#register_cmd(cmd, ...)  " {{{2
@@ -109,7 +110,7 @@ endfunction
 function! vcs#info(format, ...)  " {{{2
   " format, action_format
 
-  let name = vcs#detect()
+  let [name, root] = vcs#detect(getcwd())
   if name ==# ''
     " in no repository.
     return g:vcs#print_null_info
@@ -118,7 +119,7 @@ function! vcs#info(format, ...)  " {{{2
   let type = vcs#types()[name]
 
   " Caching messages.
-  let repository = type.repository()
+  let repository = type.repository(root)
   if !has_key(s:cached_status, repository)
         \ || getftime(repository) !=
         \      s:cached_status[repository].access_time
@@ -132,7 +133,7 @@ function! vcs#info(format, ...)  " {{{2
           \                      '?' : ''),
           \ 'repository_name' : (has_key(type, 'repository_name') ?
           \                      type.repository_name() : ''),
-          \ 'repository_root' : type.root(),
+          \ 'repository_root' : root,
           \ }
   endif
 
