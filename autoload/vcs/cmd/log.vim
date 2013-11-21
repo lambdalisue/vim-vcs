@@ -21,13 +21,15 @@ function! s:cmd.depends()
 endfunction
 
 function! s:cmd.execute(type, ...)
-  let log = call(a:type.log, a:000, a:type)
   call s:openbuf.open('[vcs:log:'.a:type.name.']')
+  setlocal buftype=nofile
+  execute 'lcd' a:type.workdir
+  let log = call(a:type.log, a:000, a:type)
   setlocal noreadonly
   silent % delete _
   silent 1 put =log
   silent 1 delete _
-  setlocal buftype=nofile readonly filetype=vcs-log
+  setlocal filetype=vcs-log readonly
 endfunction
 
 

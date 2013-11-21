@@ -21,19 +21,22 @@ function! s:cmd.depends()
 endfunction
 
 function! s:cmd.execute(type, ...)
+  call s:openbuf.open('[vcs:diff]')
+  setlocal buftype=nofile
+  execute 'lcd' a:type.workdir
   let diff = call(a:type.diff, a:000, a:type)
   if diff !~ '\S'
+    call s:openbuf.do('silent bdelete!')
     echohl WarningMsg
     echomsg 'vcs: diff: no diff.'
     echohl NONE
     return
   endif
-  call s:openbuf.open('[vcs:diff]')
   setlocal noreadonly
   silent % delete _
   silent 1 put =diff
   silent 1 delete _
-  setlocal filetype=diff buftype=nofile readonly
+  setlocal filetype=diff readonly
 endfunction
 
 

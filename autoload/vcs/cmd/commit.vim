@@ -27,6 +27,10 @@ function! s:cmd.execute(type, ...)
   let self.type = a:type
   let self.files = copy(a:000)
 
+  call s:openbuf.open('[vcs:commit]')
+  setlocal buftype=acwrite nobuflisted noswapfile
+  execute 'lcd' a:type.workdir
+
   if has_key(a:type, 'status')
     let status = a:type.status(self.files)
     let lines = []
@@ -41,14 +45,13 @@ function! s:cmd.execute(type, ...)
 
     if empty(lines)
       " abort if no files to commit.
+      call s:openbuf.do('silent bdelete!')
       echo 'vcs:commit: no files to commit.'
       return
     endif
   endif
 
-  call s:openbuf.open('[vcs:commit]')
   let b:vcs_commit = self
-  setlocal buftype=acwrite nobuflisted noswapfile
   augroup plugin-vcs-cmd-commit
     autocmd! * <buffer>
     autocmd BufWriteCmd <buffer> setlocal nomodified
