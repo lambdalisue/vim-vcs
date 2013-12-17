@@ -27,8 +27,8 @@ function! s:cmd.execute(type, ...)
   let self.type = a:type
   let self.files = copy(a:000)
 
-  call s:openbuf.open('[vcs:commit]')
-  setlocal buftype=acwrite nobuflisted noswapfile
+  silent call s:openbuf.open('[vcs:commit]')
+  setlocal buftype=acwrite nobuflisted noswapfile nofoldenable foldcolumn=0
   execute 'lcd' a:type.workdir
 
   if has_key(a:type, 'status')
