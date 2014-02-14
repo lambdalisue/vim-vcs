@@ -113,7 +113,7 @@ function! s:type.cat(file, rev)
 endfunction
 
 function! s:type.commit(info, ...)
-  let args = ['commit', '-a']
+  let args = ['commit']
   if has_key(a:info, 'msgfile')
     let args += ['-F', a:info.msgfile]
   endif
