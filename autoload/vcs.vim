@@ -13,13 +13,13 @@ let s:cmds = {}
 " Stored types.
 let s:types = {}
 
-" Cached status message.
-let s:cached_status = {}
-
 " Variables.
 let g:vcs#print_null_info = !get(g:, 'vcs#print_null', 0) ?
       \ '' : get(g:, 'vcs#print_null_info', '(novcs)-[noinfo]')
+let g:vcs#data_directory = get(g:, 'vcs#data_directory',
+      \ expand('~/.cache/vcs'))
 
+let s:Cache = vital#of('vcs').import('System.Cache')
 
 " --- Interface for user. {{{1
 
@@ -122,26 +122,23 @@ function! vcs#info(format, ...)  " {{{2
 
   " Caching messages.
   let repository = type.repository(root)
-  if !has_key(s:cached_status, repository)
-        \ || getftime(repository) !=
-        \      s:cached_status[repository].access_time
 
-    let s:cached_status[repository] = {
-          \ 'access_time' : getftime(repository),
-          \ 'current_branch' : (has_key(type, 'current_branch') ?
-          \                      type.current_branch() : ''),
-          \ 'action_message' : s:get_action_message(type),
-          \ 'pushed_message' : (has_key(type, 'is_synced') && type.is_synced() ?
-          \                      '?' : ''),
-          \ 'repository_name' : (has_key(type, 'repository_name') ?
-          \                      type.repository_name() : ''),
-          \ 'repository_root' : root,
-          \ }
+  let cache_dir = g:vcs#data_directory . '/info'
+  if !s:Cache.filereadable(cache_dir, repository)
+    let info = s:get_vcs_info(type, repository, root)
+    call s:Cache.writefile(cache_dir, repository, [string(info)])
+  endif
+
+  sandbox let info = eval(s:Cache.readfile(cache_dir, repository)[0])
+
+  if getftime(repository) != info.access_time
+    let info = s:get_vcs_info(type, repository, root)
+    call s:Cache.writefile(cache_dir, repository, [string(info)])
   endif
 
   let format_string = a:format
   if !empty(a:000)
-    if s:cached_status[repository].action_message != ''
+    if info.action_message != ''
       " Use action format.
       let format_string = a:1
     endif
@@ -150,49 +147,49 @@ function! vcs#info(format, ...)  " {{{2
   " Substitute format string.
   let cnt = 0
   let max = len(format_string)
-  let info = ''
+  let ret = ''
   while cnt < max
     if format_string[cnt] == '%' && cnt+1 < max
       let format = format_string[cnt + 1]
       if format == '%'
         " %%.
-        let info .= '%'
+        let ret .= '%'
       elseif format == 'a'
         " %a : action message.
-        let info .= s:cached_status[repository].action_message
+        let ret .= info.action_message
       elseif format == 'b'
         " %b : current branch name.
-        let info .= s:cached_status[repository].current_branch
+        let ret .= info.current_branch
       elseif format == 'p'
         " %p : is pushed message.
-        let info .= s:cached_status[repository].pushed_message
+        let ret .= info.pushed_message
       elseif format == 'r'
         " %r : repository name.
-        let info .= s:cached_status[repository].repository_name
+        let ret .= info.repository_name
       elseif format == 'R'
         " %R : path to repository root.
-        let info .= s:cached_status[repository].repository_root
+        let ret .= info.repository_root
       elseif format == 's'
         " %s : VCS name.
-        let info .= type.name
+        let ret .= type.name
       elseif format == 'S'
         " %s : relative path to root.
-        let info .= has_key(type, 'relative_path') ?
+        let ret .= has_key(type, 'relative_path') ?
               \ type.relative_path(getcwd()) : ''
       else
         " Ignore.
-        let info .= '?'
+        let ret .= '?'
       endif
 
       let cnt += 1
     else
-      let info .= format_string[cnt]
+      let ret .= format_string[cnt]
     endif
 
     let cnt += 1
   endwhile
 
-  return info
+  return ret
 endfunction
 
 
@@ -427,6 +424,20 @@ function! s:echoerr(msg)  " {{{2
     echomsg line
   endfor
   echohl None
+endfunction
+
+function! s:get_vcs_info(type, repository, root)  " {{{2
+  return {
+        \ 'access_time' : getftime(a:repository),
+        \ 'current_branch' : (has_key(a:type, 'current_branch') ?
+        \                      a:type.current_branch() : ''),
+        \ 'action_message' : s:get_action_message(a:type),
+        \ 'pushed_message' : (has_key(a:type, 'is_synced') &&
+        \                     a:type.is_synced() ? '?' : ''),
+        \ 'repository_name' : (has_key(a:type, 'repository_name') ?
+        \                      a:type.repository_name() : ''),
+        \ 'repository_root' : a:root,
+        \ }
 endfunction
 
 " --- Register. {{{1
