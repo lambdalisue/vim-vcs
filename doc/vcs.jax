@@ -128,7 +128,16 @@ g:vcs#config					*g:vcs#config*
 
 	type					*g:vcs#config-type*
 
+g:vcs#data_directory				*g:vcs#data_directory*
+	一時ファイルのディレクトリを指定します。
 
+g:vcs#print_null				*g:vcs#print_null*
+	|vcs#info()| が VCS を検出できなかったときに |g:vcs#print_null_info| を表
+        示するかどうか。
+
+g:vcs#print_null_info				*g:vcs#print_null_info*
+	|vcs#info()| が VCS を検出できなかったときに表示するフォーマット文字列で
+        す。
 
 ==============================================================================
 構造						*vcs-structure*
