@@ -13,6 +13,16 @@ let s:openbuf = openbuf#new('vcs/cmd/status', {
 let s:cmd = {
 \   'name': 'status',
 \ }
+let s:status_list = [
+      \ 'added',
+      \ 'modified',
+      \ 'deleted',
+      \ 'conflicted',
+      \ 'untracked',
+      \ 'renamed'
+      \]
+let s:status_pattern = join(s:status_list, '|')
+let s:status_path_pattern = '\v' . printf('^#\t%%(%s):\t(.+)$', s:status_pattern)
 
 function! s:cmd.depends()
   return ['status', 'add', 'rm', 'reset']
@@ -38,10 +48,15 @@ function! s:cmd.execute(type, ...)
 
   return ''
 endfunction
-
 " Misc.
+function! s:find_path_on_status(line)
+  if a:line =~# s:status_path_pattern
+    return substitute(a:line, s:status_path_pattern, '\1', 'g')
+  endif
+  return ''
+endfunction
 function! s:add_cursor_file()
-  let cfile = vcs#expand('<cfile>')
+  let cfile = s:find_path_on_status(getline('.'))
   if cfile ==# '#' || cfile == '' || cfile =~ ':$'
     return
   endif
@@ -56,7 +71,7 @@ function! s:add_cursor_file()
   call s:refresh_buffer()
 endfunction
 function! s:remove_cursor_file()
-  let cfile = vcs#expand('<cfile>')
+  let cfile = s:find_path_on_status(getline('.'))
   if cfile ==# '#' || cfile == '' || cfile =~ ':$'
     return
   endif
