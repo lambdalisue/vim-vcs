@@ -21,12 +21,14 @@ let s:status_list = [
       \ 'untracked',
       \ 'renamed'
       \]
-let s:status_pattern = join(s:status_list, '|')
-let s:status_path_pattern = '\v' . printf('^#\t%%(%s):\t(.+)$', s:status_pattern)
+let s:status_pattern = join(s:status_list, '\|')
+let s:status_path_pattern = printf('^#\t\%%(%s\):\t\(.\+\)$', s:status_pattern)
 
 function! s:cmd.depends()
   return ['status', 'add', 'rm', 'reset']
 endfunction
+
+nmap <silent> <Plug>(vcs-toggle-cursor-file) :<C-u>call <SID>toggle_cursor_file()<CR>
 
 function! s:cmd.execute(type, ...)
   let self.type = a:type
@@ -38,9 +40,8 @@ function! s:cmd.execute(type, ...)
 
   let b:vcs_status = self
 
-  nnoremap <silent><buffer> <Enter> :<C-u>call <SID>add_cursor_file()<CR>
-  nnoremap <silent><buffer> -       :<C-u>call <SID>remove_cursor_file()<CR>
 
+  nmap <silent><buffer> <Return> <Plug>(vcs-toggle-cursor-file)
   call s:refresh_buffer()
 
   1
@@ -79,6 +80,40 @@ function! s:remove_cursor_file()
   call b:vcs_status.type.reset([cfile])
   call s:refresh_buffer()
 endfunction
+function! s:toggle_cursor_file()
+  let cfile = s:find_path_on_status(getline('.'))
+  if cfile ==# '#' || cfile == '' || cfile =~ ':$'
+    return
+  endif
+
+  if index(keys(s:get_staged_files()), cfile) != -1
+    call s:remove_cursor_file()
+  else
+    call s:add_cursor_file()
+  endif
+endfunction
+function! s:get_staged_files()
+  if has_key(b:vcs_status.type, '__staged_files')
+    return b:vcs_status.type.__staged_files
+  else
+    let status = b:vcs_status.type.status(b:vcs_status.files)
+    let staged_files = filter(copy(status), 'index(s:status_list, v:val) != -1')
+    let b:vcs_status.type.__staged_files = staged_files
+    return staged_files
+  endif
+endfunction
+function! s:get_unstaged_files()
+  if has_key(b:vcs_status.type, '__unstaged_files')
+    return b:vcs_status.type.__unstaged_files
+  elseif has_key(b:vcs_status.type, 'unstaged_status')
+    let status = b:vcs_status.type.unstaged_status(b:vcs_status.files)
+    let unstaged_files = filter(copy(status), 'index(s:status_list, v:val) != -1')
+    let b:vcs_status.type.__unstaged_files = unstaged_files
+    return unstaged_files
+  else
+    return {}
+  endif
+endfunction
 function! s:refresh_buffer()
   let pos = getpos('.')
   silent % delete _
@@ -92,15 +127,18 @@ function! s:refresh_buffer()
     endif
   endif
 
+  " remove staged_files/unstaged_files cache
+  if has_key(b:vcs_status.type, '__staged_files')
+    unlet! b:vcs_status.type.__staged_files
+  endif
+  if has_key(b:vcs_status.type, '__unstaged_files')
+    unlet! b:vcs_status.type.__unstaged_files
+  endif
+
   " print staged status.
-  let status = b:vcs_status.type.status(b:vcs_status.files)
-  let staged_lines = []
-  for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
-    let files = filter(copy(status), 'v:val ==# st')
-    if !empty(files)
-      let staged_lines += map(keys(files), '"#\<TAB>" . st . ":\<TAB>" . v:val')
-    endif
-  endfor
+  let staged_files = s:get_staged_files()
+  let staged_lines = map(keys(staged_files),
+        \ '"#\<TAB>" . staged_files[v:val] . ":\<TAB>" . v:val') 
   if !empty(staged_lines)
     silent $ put ='# Staged files:'
     silent $ put ='#'
@@ -109,21 +147,14 @@ function! s:refresh_buffer()
   endif
 
   " print unstaged status.
-  let unstaged_lines = []
-  if has_key(b:vcs_status.type, 'unstaged_status')
-    let status = b:vcs_status.type.unstaged_status(b:vcs_status.files)
-    for st in ['added', 'modified', 'deleted', 'conflicted', 'untracked', 'renamed']
-      let files = filter(copy(status), 'v:val ==# st')
-      if !empty(files)
-        let unstaged_lines += map(keys(files), '"#\<TAB>" . st . ":\<TAB>" . v:val')
-      endif
-    endfor
-    if !empty(unstaged_lines)
-      silent $ put ='# Unstaged files:'
-      silent $ put ='#'
-      silent $ put =unstaged_lines
-      silent $ put ='#'
-    endif
+  let unstaged_files = s:get_unstaged_files()
+  let unstaged_lines = map(keys(unstaged_files),
+        \ '"#\<TAB>" . unstaged_files[v:val] . ":\<TAB>" . v:val')
+  if !empty(unstaged_lines)
+    silent $ put ='# Unstaged files:'
+    silent $ put ='#'
+    silent $ put =unstaged_lines
+    silent $ put ='#'
   endif
 
   if empty(staged_lines) && empty(unstaged_lines)
